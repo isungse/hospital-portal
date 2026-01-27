@@ -171,7 +171,7 @@ export default function ViewPage() {
 
             {/* 관리자 상태 변경 및 삭제 메뉴 */}
             <div className="bg-slate-100 p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-slate-200">
-               <span className="font-bold text-slate-600 text-sm">기능 제어</span>
+               <span className="font-bold text-slate-600 text-sm"></span>
                
                <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end items-center">
                  <button onClick={() => handleStatusChange('확인')} className="px-4 py-2 bg-blue-600 border border-blue-700 rounded hover:bg-blue-700 text-white font-bold transition shadow-sm text-sm">
