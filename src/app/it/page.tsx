@@ -114,7 +114,7 @@ export default function ITBoard() {
                 <tr className="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
                   <th className="p-4 w-28 text-center">상태</th>
                   <th className="p-4 w-auto">제목</th>
-                  <th className="p-4 w-28 text-center">부서</th>
+                  <th className="p-4 w-40 text-center">부서</th>
                   <th className="p-4 w-24 text-center">작성자</th>
                   <th className="p-4 w-24 text-center">내선번호</th>
                   <th className="p-4 w-40 text-center">작성일</th>
