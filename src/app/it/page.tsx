@@ -15,11 +15,10 @@ export default function ITBoard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('전체');
 
-  // 데이터 가져오기 (전산팀 데이터만 필터링)
+  // 데이터 가져오기 및 초기 정렬
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        // 🔥 category 필드가 'it'인 문서만 내림차순으로 가져옵니다.
         const q = query(
           collection(db, "requests"),
           where("category", "==", "it"),
@@ -32,8 +31,16 @@ export default function ITBoard() {
           ...doc.data()
         }));
 
-        setAllRequests(list);
-        setFilteredRequests(list);
+        // 🔥 [정렬 강화] 문자열에서 '오전/오후'가 섞여 있어도 최대한 숫자 기준으로 정렬
+        const sortedList = list.sort((a: any, b: any) => {
+          // 숫자만 추출하여 비교 (202601281430... 형태)
+          const valA = a.date.replace(/[^0-9]/g, "");
+          const valB = b.date.replace(/[^0-9]/g, "");
+          return valB.localeCompare(valA);
+        });
+
+        setAllRequests(sortedList);
+        setFilteredRequests(sortedList);
       } catch (error) {
         console.error("데이터 가져오기 실패:", error);
       } finally {
@@ -43,12 +50,14 @@ export default function ITBoard() {
     fetchRequests();
   }, []);
 
-  // 검색 및 상단 탭 필터링 로직
+  // 검색 및 필터링 로직 (정렬 유지)
   useEffect(() => {
-    let result = allRequests;
+    let result = [...allRequests];
+
     if (statusFilter !== '전체') {
       result = result.filter(req => req.status === statusFilter);
     }
+
     if (searchTerm) {
       const lowerTerm = searchTerm.toLowerCase();
       result = result.filter(req =>
@@ -58,6 +67,14 @@ export default function ITBoard() {
         req.ext.includes(lowerTerm)
       );
     }
+
+    // 🔥 필터링 후에도 최신순 정렬 강제 (숫자 비교 방식)
+    result.sort((a, b) => {
+      const valA = a.date.replace(/[^0-9]/g, "");
+      const valB = b.date.replace(/[^0-9]/g, "");
+      return valB.localeCompare(valA);
+    });
+
     setFilteredRequests(result);
   }, [searchTerm, statusFilter, allRequests]);
 
@@ -65,7 +82,7 @@ export default function ITBoard() {
     <div className="min-h-screen bg-slate-100 flex items-center justify-center py-10 px-4 font-sans text-slate-900">
       <div className="w-full max-w-7xl bg-white rounded-lg shadow-xl overflow-hidden border border-slate-300">
 
-        {/* 상단바: 전산팀 고유 테마 유지 */}
+        {/* 상단바 */}
         <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between select-none">
           <div className="flex items-center gap-3">
             <span className="font-bold tracking-wide text-lg">🖥️ 전산 업무 요청 현황</span>
@@ -76,16 +93,16 @@ export default function ITBoard() {
             <button onClick={() => router.push('/write?type=it')} className="text-xs bg-indigo-500 hover:bg-blue-500 px-4 py-2 rounded transition font-bold shadow-md">+ 글작성</button>
           </div>
         </div>
-        <div className="p-6 bg-white min-h-[600px]">
 
+        <div className="p-6 bg-white min-h-[600px]">
           {/* 검색 및 필터 영역 */}
           <div className="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
-            <div className="flex gap-1">
+            <div className="flex gap-1 overflow-x-auto pb-2 md:pb-0">
               {['전체', '대기중', '확인', '보류', '완료'].map((status) => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-2 text-sm font-bold rounded-md transition border
+                  className={`px-4 py-2 text-sm font-bold rounded-md transition border whitespace-nowrap
                       ${statusFilter === status
                       ? 'bg-slate-800 text-white border-slate-800'
                       : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'}`}
@@ -94,7 +111,6 @@ export default function ITBoard() {
                 </button>
               ))}
             </div>
-
             <div className="relative w-full md:w-72">
               <input
                 type="text"
@@ -107,34 +123,26 @@ export default function ITBoard() {
             </div>
           </div>
 
-          {/* 리스트 테이블 */}
+          {/* 리스트 테이블: table-auto로 설정하여 부서명 길이에 맞춰 유연하게 반응 */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse table-fixed">
+            <table className="w-full text-left border-collapse table-auto">
               <thead>
                 <tr className="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
-                  <th className="p-4 w-28 text-center">상태</th>
-                  <th className="p-4 w-auto">제목</th>
-                  <th className="p-4 w-48 text-center">부서</th>
-                  <th className="p-4 w-24 text-center">작성자</th>
-                  <th className="p-4 w-24 text-center">내선번호</th>
-                  <th className="p-4 w-40 text-center">작성일</th>
+                  <th className="p-4 w-28 text-center whitespace-nowrap">상태</th>
+                  <th className="p-4 min-w-[300px]">제목</th>
+                  {/* 부서 헤더: min-width만 지정하여 긴 이름 수용 */}
+                  <th className="p-4 text-center whitespace-nowrap min-w-[150px]">부서</th>
+                  <th className="p-4 w-24 text-center whitespace-nowrap">작성자</th>
+                  <th className="p-4 w-24 text-center whitespace-nowrap">내선번호</th>
+                  <th className="p-4 w-44 text-center whitespace-nowrap">작성일</th>
                 </tr>
               </thead>
 
               <tbody className="text-sm text-slate-700">
                 {isLoading ? (
-                  <tr>
-                    <td colSpan={6} className="p-10 text-center text-slate-500 font-bold">
-                      데이터를 불러오는 중입니다...
-                    </td>
-                  </tr>
+                  <tr><td colSpan={6} className="p-10 text-center font-bold">로딩 중...</td></tr>
                 ) : filteredRequests.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="p-10 text-center border-b border-slate-100">
-                      <p className="text-4xl mb-2">📭</p>
-                      <span className="text-slate-400 font-medium">전산 요청 데이터가 없습니다.</span>
-                    </td>
-                  </tr>
+                  <tr><td colSpan={6} className="p-10 text-center text-slate-400 font-medium">요청 데이터가 없습니다.</td></tr>
                 ) : (
                   filteredRequests.map((req) => (
                     <tr
@@ -143,7 +151,7 @@ export default function ITBoard() {
                       className="border-b border-slate-100 hover:bg-blue-50 cursor-pointer transition group"
                     >
                       <td className="p-4 text-center align-middle">
-                        <span className={`inline-block w-15 py-1 rounded text-xs font-bold border text-center whitespace-nowrap
+                        <span className={`inline-block px-3 py-1 rounded text-xs font-bold border whitespace-nowrap
                           ${req.status === '완료' ? 'bg-green-100 text-green-700 border-green-200' :
                             req.status === '보류' ? 'bg-orange-100 text-orange-700 border-orange-200' :
                               req.status === '확인' ? 'bg-blue-100 text-blue-700 border-blue-200' :
@@ -151,26 +159,19 @@ export default function ITBoard() {
                           {req.status}
                         </span>
                       </td>
-
-                      <td className="p-4 align-middle">
-                        <span className="font-medium text-slate-900 group-hover:text-blue-700 block truncate">
-                          {req.title}
-                        </span>
+                      <td className="p-4 align-middle font-medium text-slate-900 group-hover:text-blue-700">
+                        <div className="line-clamp-1">{req.title}</div>
                       </td>
-
-                      <td className="p-4 text-center align-middle text-slate-600">
+                      {/* 부서명: 줄바꿈 방지 및 table-auto 레이아웃 적용 */}
+                      <td className="p-4 text-center align-middle text-slate-600 whitespace-nowrap px-6">
                         {req.dept}
                       </td>
-
-                      {/* td에서는 너비를 쓰지 말고 padding과 정렬만 남기세요 */}
-                      <td className="p-4 text-center align-middle text-slate-600 whitespace-nowrap overflow-hidden">
-                        {req.dept}
+                      <td className="p-4 text-center align-middle text-slate-900 font-medium whitespace-nowrap">
+                        {req.author}
                       </td>
-
                       <td className="p-4 text-center align-middle text-slate-600 whitespace-nowrap">
                         📞 {req.ext}
                       </td>
-
                       <td className="p-4 text-center align-middle text-slate-400 text-xs whitespace-nowrap">
                         {req.date}
                       </td>
@@ -181,8 +182,8 @@ export default function ITBoard() {
             </table>
           </div>
 
-          <div className="mt-4 text-right text-xs text-slate-400">
-            총 {filteredRequests.length}건의 전산 요청이 있습니다.
+          <div className="mt-4 text-right text-xs text-slate-400 font-medium">
+            총 {filteredRequests.length}건의 요청이 있습니다.
           </div>
         </div>
       </div>

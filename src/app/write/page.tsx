@@ -34,20 +34,28 @@ function WriteForm() {
     }
 
     try {
-      const today = new Date().toLocaleDateString('ko-KR', {
-        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
-      });
+      // 🔥 [핵심수정] hour12: false를 추가하여 '오전/오후'를 제거하고 24시간제로 통일합니다.
+      // 하이픈(-) 포맷으로 변경하여 문자열 정렬이 완벽하게 작동하도록 만듭니다.
+      const now = new Date();
+      const today = now.toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false // 오전/오후 제거
+      }).replace(/\. /g, '-').replace('.', ''); 
 
       // DB 저장 시 category 필드 추가
       await addDoc(collection(db, "requests"), {
         ...formData,
-        category: category, // 🔥 it 또는 facility 저장
-        date: today,
+        category: category, 
+        date: today, // 이제 '2026-01-28 14:30' 형식으로 저장됨
         status: '대기중'
       });
       
       alert(`✅ ${category === 'it' ? '전산' : '시설'} 업무 요청이 등록되었습니다.`);
-      router.push(`/${category}`); // 등록 후 해당 게시판 리스트로 이동
+      router.push(`/${category}`); 
 
     } catch (error) {
       console.error("등록 에러:", error);
@@ -133,11 +141,11 @@ function WriteForm() {
                   placeholder="내용을 입력하세요 (선택)"></textarea>
               </div>
 
-              {/* 등록 버튼: 카테고리에 따라 색상 변경 */}
+              {/* 등록 버튼 */}
               <button type="submit" 
                 className={`w-full text-white font-bold py-4 rounded-md transition shadow-md text-lg mt-4 active:scale-[0.99]
                 ${category === 'it' ? 'bg-slate-800 hover:bg-slate-700' : 'bg-orange-600 hover:bg-orange-500'}`}>
-                {category === 'it' ? 'SAVE' : 'SAVE'}
+                SAVE
               </button>
             </form>
           </div>
@@ -147,7 +155,6 @@ function WriteForm() {
   );
 }
 
-// Next.js에서 useSearchParams를 사용하려면 Suspense로 감싸야 빌드 시 에러가 나지 않습니다.
 export default function WritePage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">로딩 중...</div>}>
