@@ -114,7 +114,7 @@ export default function ITBoard() {
                 <tr className="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
                   <th className="p-4 w-28 text-center">상태</th>
                   <th className="p-4 w-auto">제목</th>
-                  <th className="p-4 w-40 text-center">부서</th>
+                  <th className="p-4 w-48 text-center">부서</th>
                   <th className="p-4 w-24 text-center">작성자</th>
                   <th className="p-4 w-24 text-center">내선번호</th>
                   <th className="p-4 w-40 text-center">작성일</th>
@@ -158,12 +158,13 @@ export default function ITBoard() {
                         </span>
                       </td>
 
-                      <td className="p-4 text-center align-middle text-slate-600 truncate">
+                      <td className="p-4 text-center align-middle text-slate-600">
                         {req.dept}
                       </td>
 
-                      <td className="p-4 text-center align-middle text-slate-900 font-medium">
-                        {req.author}
+                      {/* td에서는 너비를 쓰지 말고 padding과 정렬만 남기세요 */}
+                      <td className="p-4 text-center align-middle text-slate-600 whitespace-nowrap overflow-hidden">
+                        {req.dept}
                       </td>
 
                       <td className="p-4 text-center align-middle text-slate-600 whitespace-nowrap">
