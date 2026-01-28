@@ -31,9 +31,7 @@ export default function ITBoard() {
           ...doc.data()
         }));
 
-        // 🔥 [정렬 강화] 문자열에서 '오전/오후'가 섞여 있어도 최대한 숫자 기준으로 정렬
         const sortedList = list.sort((a: any, b: any) => {
-          // 숫자만 추출하여 비교 (202601281430... 형태)
           const valA = a.date.replace(/[^0-9]/g, "");
           const valB = b.date.replace(/[^0-9]/g, "");
           return valB.localeCompare(valA);
@@ -68,7 +66,6 @@ export default function ITBoard() {
       );
     }
 
-    // 🔥 필터링 후에도 최신순 정렬 강제 (숫자 비교 방식)
     result.sort((a, b) => {
       const valA = a.date.replace(/[^0-9]/g, "");
       const valB = b.date.replace(/[^0-9]/g, "");
@@ -123,14 +120,15 @@ export default function ITBoard() {
             </div>
           </div>
 
-          {/* 리스트 테이블: table-auto로 설정하여 부서명 길이에 맞춰 유연하게 반응 */}
+          {/* 리스트 테이블 */}
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse table-auto">
               <thead>
                 <tr className="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
+                  {/* 🔥 번호 헤더 추가 */}
+                  <th className="p-4 w-16 text-center whitespace-nowrap">No.</th>
                   <th className="p-4 w-28 text-center whitespace-nowrap">상태</th>
                   <th className="p-4 min-w-[300px]">제목</th>
-                  {/* 부서 헤더: min-width만 지정하여 긴 이름 수용 */}
                   <th className="p-4 text-center whitespace-nowrap min-w-[150px]">부서</th>
                   <th className="p-4 w-24 text-center whitespace-nowrap">작성자</th>
                   <th className="p-4 w-24 text-center whitespace-nowrap">내선번호</th>
@@ -140,16 +138,20 @@ export default function ITBoard() {
 
               <tbody className="text-sm text-slate-700">
                 {isLoading ? (
-                  <tr><td colSpan={6} className="p-10 text-center font-bold">로딩 중...</td></tr>
+                  <tr><td colSpan={7} className="p-10 text-center font-bold">로딩 중...</td></tr>
                 ) : filteredRequests.length === 0 ? (
-                  <tr><td colSpan={6} className="p-10 text-center text-slate-400 font-medium">요청 데이터가 없습니다.</td></tr>
+                  <tr><td colSpan={7} className="p-10 text-center text-slate-400 font-medium">요청 데이터가 없습니다.</td></tr>
                 ) : (
-                  filteredRequests.map((req) => (
+                  filteredRequests.map((req, index) => (
                     <tr
                       key={req.id}
                       onClick={() => router.push(`/view/${req.id}`)}
                       className="border-b border-slate-100 hover:bg-blue-50 cursor-pointer transition group"
                     >
+                      {/* 🔥 번호 데이터: 전체 개수 - 현재 인덱스로 역순 표시 */}
+                      <td className="p-4 text-center align-middle text-slate-400 font-mono">
+                        {filteredRequests.length - index}
+                      </td>
                       <td className="p-4 text-center align-middle">
                         <span className={`inline-block px-3 py-1 rounded text-xs font-bold border whitespace-nowrap
                           ${req.status === '완료' ? 'bg-green-100 text-green-700 border-green-200' :
@@ -162,7 +164,6 @@ export default function ITBoard() {
                       <td className="p-4 align-middle font-medium text-slate-900 group-hover:text-blue-700">
                         <div className="line-clamp-1">{req.title}</div>
                       </td>
-                      {/* 부서명: 줄바꿈 방지 및 table-auto 레이아웃 적용 */}
                       <td className="p-4 text-center align-middle text-slate-600 whitespace-nowrap px-6">
                         {req.dept}
                       </td>

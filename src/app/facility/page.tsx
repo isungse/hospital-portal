@@ -13,6 +13,7 @@ export default function FacilityBoard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('전체');
 
+  // 데이터 가져오기 및 초기 정렬
   useEffect(() => {
     const fetchRequests = async () => {
       try {
@@ -28,8 +29,15 @@ export default function FacilityBoard() {
           ...doc.data()
         }));
 
-        setAllRequests(list);
-        setFilteredRequests(list);
+        // 🔥 [정렬 강화] 문자열 내 숫자 추출 비교로 '오전/오후' 혼용 데이터 완벽 대응
+        const sortedList = list.sort((a: any, b: any) => {
+          const valA = a.date.replace(/[^0-9]/g, "");
+          const valB = b.date.replace(/[^0-9]/g, "");
+          return valB.localeCompare(valA);
+        });
+
+        setAllRequests(sortedList);
+        setFilteredRequests(sortedList);
       } catch (error) {
         console.error("시설 데이터 가져오기 실패:", error);
       } finally {
@@ -39,8 +47,9 @@ export default function FacilityBoard() {
     fetchRequests();
   }, []);
 
+  // 검색 및 필터링 로직 (정렬 및 순번 유지)
   useEffect(() => {
-    let result = allRequests;
+    let result = [...allRequests];
     if (statusFilter !== '전체') {
       result = result.filter(req => req.status === statusFilter);
     }
@@ -53,6 +62,14 @@ export default function FacilityBoard() {
         req.ext.includes(lowerTerm)
       );
     }
+
+    // 🔥 필터링 후에도 최신순 정렬 강제
+    result.sort((a, b) => {
+      const valA = a.date.replace(/[^0-9]/g, "");
+      const valB = b.date.replace(/[^0-9]/g, "");
+      return valB.localeCompare(valA);
+    });
+
     setFilteredRequests(result);
   }, [searchTerm, statusFilter, allRequests]);
 
@@ -60,27 +77,27 @@ export default function FacilityBoard() {
     <div className="min-h-screen bg-slate-100 flex items-center justify-center py-10 px-4 font-sans text-slate-900">
       <div className="w-full max-w-7xl bg-white rounded-lg shadow-xl overflow-hidden border border-slate-300">
 
-        {/* 🟧 상단바: 시설팀 오렌지 테마 + 직사각형 버튼 복구 */}
+        {/* 🟧 상단바: 시설팀 오렌지 테마 */}
         <div className="bg-orange-600 text-white px-6 py-4 flex items-center justify-between select-none shadow-md">
           <div className="flex items-center gap-3">
             <span className="font-bold tracking-wide text-lg">🛠️ 시설 업무 요청 현황</span>
           </div>
-          
+
           <div className="flex gap-2">
-            <button 
-              onClick={() => router.push('/')} 
+            <button
+              onClick={() => router.push('/')}
               className="text-xs bg-orange-700 hover:bg-orange-800 px-4 py-2 rounded-sm transition-all font-bold border border-white/30 text-white"
             >
               HOME
             </button>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="text-xs bg-orange-700 hover:bg-orange-800 px-4 py-2 rounded-sm transition-all font-bold border border-white/30 text-white flex items-center gap-1"
             >
               🔄 새로고침
             </button>
-            <button 
-              onClick={() => router.push('/write?type=facility')} 
+            <button
+              onClick={() => router.push('/write?type=facility')}
               className="text-xs bg-white text-orange-600 hover:bg-orange-50 px-5 py-2 rounded-sm transition-all font-black shadow-md border border-white"
             >
               + 글작성
@@ -91,15 +108,15 @@ export default function FacilityBoard() {
         <div className="p-6 bg-white min-h-[600px]">
           {/* 검색 및 필터 영역 */}
           <div className="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50 p-4 rounded-md border border-slate-200">
-            <div className="flex gap-1">
+            <div className="flex gap-1 overflow-x-auto pb-2 md:pb-0">
               {['전체', '대기중', '확인', '보류', '완료'].map((status) => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-2 text-sm font-bold rounded-sm transition border
+                  className={`px-4 py-2 text-sm font-bold rounded-sm transition border whitespace-nowrap
                     ${statusFilter === status
-                    ? 'bg-orange-600 text-white border-orange-600'
-                    : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'}`}
+                      ? 'bg-orange-600 text-white border-orange-600'
+                      : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'}`}
                 >
                   {status}
                 </button>
@@ -118,34 +135,39 @@ export default function FacilityBoard() {
             </div>
           </div>
 
-          {/* 리스트 테이블 */}
+          {/* 리스트 테이블: table-auto로 유연성 확보 */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse table-fixed">
+            <table className="w-full text-left border-collapse table-auto">
               <thead>
                 <tr className="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
-                  <th className="p-4 w-28 text-center">상태</th>
-                  <th className="p-4 w-auto">제목</th>
-                  <th className="p-4 w-28 text-center">부서</th>
-                  <th className="p-4 w-24 text-center">작성자</th>
-                  <th className="p-4 w-24 text-center">내선번호</th>
-                  <th className="p-4 w-40 text-center">작성일</th>
+                  <th className="p-4 w-16 text-center whitespace-nowrap">No.</th>
+                  <th className="p-4 w-28 text-center whitespace-nowrap">상태</th>
+                  <th className="p-4 min-w-[300px]">제목</th>
+                  <th className="p-4 text-center whitespace-nowrap min-w-[150px]">부서</th>
+                  <th className="p-4 w-24 text-center whitespace-nowrap">작성자</th>
+                  <th className="p-4 w-24 text-center whitespace-nowrap">내선번호</th>
+                  <th className="p-4 w-44 text-center whitespace-nowrap">작성일</th>
                 </tr>
               </thead>
 
               <tbody className="text-sm text-slate-700">
                 {isLoading ? (
-                  <tr><td colSpan={6} className="p-10 text-center text-slate-500 font-bold font-sans">데이터를 불러오는 중입니다...</td></tr>
+                  <tr><td colSpan={7} className="p-10 text-center text-slate-500 font-bold">데이터를 불러오는 중입니다...</td></tr>
                 ) : filteredRequests.length === 0 ? (
-                  <tr><td colSpan={6} className="p-10 text-center border-b border-slate-100"><p className="text-4xl mb-2">📭</p><span className="text-slate-400 font-medium">시설 요청 데이터가 없습니다.</span></td></tr>
+                  <tr><td colSpan={7} className="p-10 text-center border-b border-slate-100"><p className="text-4xl mb-2">📭</p><span className="text-slate-400 font-medium">시설 요청 데이터가 없습니다.</span></td></tr>
                 ) : (
-                  filteredRequests.map((req) => (
+                  filteredRequests.map((req, index) => (
                     <tr
                       key={req.id}
                       onClick={() => router.push(`/view/${req.id}`)}
                       className="border-b border-slate-100 hover:bg-orange-50 cursor-pointer transition group"
                     >
+                      {/* No. 컬럼 (역순 번호) */}
+                      <td className="p-4 text-center align-middle text-slate-400 font-mono">
+                        {filteredRequests.length - index}
+                      </td>
                       <td className="p-4 text-center align-middle">
-                        <span className={`inline-block w-15 py-1 rounded-sm text-[11px] font-bold border text-center whitespace-nowrap
+                        <span className={`inline-block px-3 py-1 rounded-sm text-[11px] font-bold border text-center whitespace-nowrap
                           ${req.status === '완료' ? 'bg-green-100 text-green-700 border-green-200' :
                             req.status === '보류' ? 'bg-orange-100 text-orange-700 border-orange-200' :
                               req.status === '확인' ? 'bg-blue-100 text-blue-700 border-blue-200' :
@@ -153,9 +175,15 @@ export default function FacilityBoard() {
                           {req.status}
                         </span>
                       </td>
-                      <td className="p-4 align-middle"><span className="font-medium text-slate-900 group-hover:text-orange-700 block truncate">{req.title}</span></td>
-                      <td className="p-4 text-center align-middle text-slate-600 truncate">{req.dept}</td>
-                      <td className="p-4 text-center align-middle text-slate-900 font-medium">{req.author}</td>
+                      <td className="p-4 align-middle font-medium text-slate-900 group-hover:text-orange-700">
+                        <div className="line-clamp-1">{req.title}</div>
+                      </td>
+                      <td className="p-4 text-center align-middle text-slate-600 whitespace-nowrap px-6">
+                        {req.dept}
+                      </td>
+                      <td className="p-4 text-center align-middle text-slate-900 font-medium whitespace-nowrap">
+                        {req.author}
+                      </td>
                       <td className="p-4 text-center align-middle text-slate-600 whitespace-nowrap">📞 {req.ext}</td>
                       <td className="p-4 text-center align-middle text-slate-400 text-xs whitespace-nowrap">{req.date}</td>
                     </tr>
