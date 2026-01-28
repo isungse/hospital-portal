@@ -79,7 +79,7 @@ function WriteForm() {
         {/* 입력 폼 */}
         <div className="p-10 bg-slate-50 flex justify-center">
           <div className="w-full bg-white border border-slate-300 rounded-lg p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-slate-800 mb-8 pb-4 border-b border-slate-100 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-slate-800 mb-8 pb-4 border-b border-slate-100 flex items-center gap-2">
               📝 {category === 'it' ? '전산' : '시설'} 업무 요청 작성
             </h2>
 
@@ -137,7 +137,7 @@ function WriteForm() {
               <button type="submit" 
                 className={`w-full text-white font-bold py-4 rounded-md transition shadow-md text-lg mt-4 active:scale-[0.99]
                 ${category === 'it' ? 'bg-slate-800 hover:bg-slate-700' : 'bg-orange-600 hover:bg-orange-500'}`}>
-                {category === 'it' ? '전산 요청 등록하기' : '시설 요청 등록하기'}
+                {category === 'it' ? 'SAVE' : 'SAVE'}
               </button>
             </form>
           </div>

@@ -95,7 +95,7 @@ export default function ViewPage() {
 
   return (
     <div className="min-h-screen bg-slate-200 flex items-center justify-center py-10 px-4 font-sans text-slate-900">
-      <div className="w-full max-w-3xl bg-white rounded-lg shadow-2xl overflow-hidden border border-slate-400">
+      <div className="w-full max-w-5xl bg-white rounded-lg shadow-2xl overflow-hidden border border-slate-400">
         
         {/* 상단바: 카테고리에 따라 색상 및 텍스트 변경 */}
         <div className={`${data.category === 'facility' ? 'bg-orange-600' : 'bg-slate-800'} text-white px-5 py-3 flex items-center justify-between select-none transition-colors`}>
@@ -119,7 +119,7 @@ export default function ViewPage() {
           </div>
         </div>
 
-        <div className="p-10 bg-slate-50">
+        <div className="p-12 bg-slate-50">
           <div className="bg-white border border-slate-300 rounded-lg p-8 shadow-sm">
             
             {/* 제목 영역 */}
@@ -127,7 +127,7 @@ export default function ViewPage() {
                  <span className={`text-sm font-bold px-2 py-0.5 rounded mb-2 inline-block ${data.category === 'facility' ? 'text-orange-700 bg-orange-50' : 'text-slate-500 bg-slate-100'}`}>
                     {data.dept}
                  </span>
-                 <h2 className="text-3xl font-bold text-slate-800">{data.title}</h2>
+                 <h2 className="text-xl font-bold text-slate-800">{data.title}</h2>
                  <p className="text-slate-400 text-sm mt-1">
                     작성자: {data.author} (내선: {data.ext}) | 작성일: {data.date}
                  </p>
