@@ -11,11 +11,9 @@ export default function ViewPage() {
   const [data, setData] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   
-  // 📝 조치 메모 및 시간 상태
   const [adminMemo, setAdminMemo] = useState('');
   const [memoSavedTime, setMemoSavedTime] = useState('');
 
-  // 1. 상세 내용 가져오기
   useEffect(() => {
     const fetchData = async () => {
       if (!params.id) {
@@ -29,8 +27,8 @@ export default function ViewPage() {
         if (docSnap.exists()) {
           const res = docSnap.data();
           setData({ id: docSnap.id, ...res });
-          setAdminMemo(res.adminMemo || ''); // 기존 메모 로드
-          setMemoSavedTime(res.memoSavedTime || ''); // 저장 시간 로드
+          setAdminMemo(res.adminMemo || '');
+          setMemoSavedTime(res.memoSavedTime || '');
         } else {
           router.push('/');
         }
@@ -41,7 +39,6 @@ export default function ViewPage() {
     fetchData();
   }, [params.id, router]);
 
-  // 💾 조치 메모 저장 함수
   const handleSaveMemo = async () => {
     if (!data || !data.id) return;
     try {
@@ -61,7 +58,6 @@ export default function ViewPage() {
     }
   };
 
-  // 2. 상태 변경 함수 (수정됨: 카테고리별 리다이렉트)
   const handleStatusChange = async (newStatus: string) => {
     if (!data || !data.id) return;
     try {
@@ -69,8 +65,8 @@ export default function ViewPage() {
       await updateDoc(docRef, { status: newStatus }); 
       alert(`[${newStatus}] 상태로 변경되었습니다.`);
       
-      // 🔥 카테고리에 따라 해당 게시판 리스트로 이동
-      const targetPath = data.category === 'facility' ? '/facility' : '/it';
+      // 🔥 카테고리 분기 확장: medical 추가
+      const targetPath = data.category === 'facility' ? '/facility' : data.category === 'medical' ? '/medical' : '/it';
       router.push(targetPath); 
     } catch (error) {
       console.error("업데이트 실패:", error);
@@ -78,11 +74,11 @@ export default function ViewPage() {
     }
   };
 
-  // 3. 삭제 함수 (수정됨: 카테고리별 리다이렉트)
   const handleDelete = async () => {
     if (!data || !data.id) return;
     try {
-      const targetPath = data.category === 'facility' ? '/facility' : '/it';
+      // 🔥 카테고리 분기 확장: medical 추가
+      const targetPath = data.category === 'facility' ? '/facility' : data.category === 'medical' ? '/medical' : '/it';
       await deleteDoc(doc(db, "requests", data.id));
       alert("삭제되었습니다.");
       router.push(targetPath); 
@@ -97,8 +93,11 @@ export default function ViewPage() {
     <div className="min-h-screen bg-slate-200 flex items-center justify-center py-10 px-4 font-sans text-slate-900">
       <div className="w-full max-w-5xl bg-white rounded-lg shadow-2xl overflow-hidden border border-slate-400">
         
-        {/* 상단바: 카테고리에 따라 색상 및 텍스트 변경 */}
-        <div className={`${data.category === 'facility' ? 'bg-orange-600' : 'bg-slate-800'} text-white px-5 py-3 flex items-center justify-between select-none transition-colors`}>
+        {/* 🔥 상단바: medical(에메랄드), facility(오렌지), it(슬레이트) 분기 */}
+        <div className={`
+          ${data.category === 'facility' ? 'bg-orange-600' : data.category === 'medical' ? 'bg-emerald-600' : 'bg-slate-800'} 
+          text-white px-5 py-3 flex items-center justify-between select-none transition-colors
+        `}>
           <div className="flex items-center gap-3">
              <div className="flex gap-2 mr-2">
                <div className="w-3 h-3 rounded-full bg-red-500"></div>
@@ -106,7 +105,7 @@ export default function ViewPage() {
                <div className="w-3 h-3 rounded-full bg-green-500"></div>
              </div>
              <span className="font-bold tracking-wide text-sm">
-               {data.category === 'facility' ? '시설업무요청' : '전산업무요청'} - 상세 보기
+               {data.category === 'facility' ? '시설업무요청' : data.category === 'medical' ? '의료기기업무요청' : '전산업무요청'} - 상세 보기
              </span>
           </div>
           <div className="flex gap-2">
@@ -124,7 +123,8 @@ export default function ViewPage() {
             
             {/* 제목 영역 */}
             <div className="border-b border-slate-100 pb-5 mb-5">
-                 <span className={`text-sm font-bold px-2 py-0.5 rounded mb-2 inline-block ${data.category === 'facility' ? 'text-orange-700 bg-orange-50' : 'text-slate-500 bg-slate-100'}`}>
+                 <span className={`text-sm font-bold px-2 py-0.5 rounded mb-2 inline-block 
+                   ${data.category === 'facility' ? 'text-orange-700 bg-orange-50' : data.category === 'medical' ? 'text-emerald-700 bg-emerald-50' : 'text-slate-500 bg-slate-100'}`}>
                     {data.dept}
                  </span>
                  <h2 className="text-xl font-bold text-slate-800">{data.title}</h2>
@@ -162,7 +162,8 @@ export default function ViewPage() {
                 />
                 <button 
                   onClick={handleSaveMemo}
-                  className={`absolute bottom-3 right-3 text-white px-3 py-1.5 rounded font-bold text-xs transition shadow-sm ${data.category === 'facility' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-slate-800 hover:bg-black'}`}
+                  className={`absolute bottom-3 right-3 text-white px-3 py-1.5 rounded font-bold text-xs transition shadow-sm 
+                    ${data.category === 'facility' ? 'bg-orange-600 hover:bg-orange-700' : data.category === 'medical' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-800 hover:bg-black'}`}
                 >
                   저장
                 </button>
