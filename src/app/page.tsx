@@ -57,20 +57,10 @@ export default function MainPage() {
             </div>
 
             {/* 카드 하단 정보 영역: description 삭제 및 디자인 유지 */}
-            <div className="p-8">
+            <div className="p-8 flex flex-col items-center">
               <h2 className="text-lg font-extrabold text-slate-800 mb-6 group-hover:text-blue-600 transition-colors">
                 {service.title}
               </h2>
-
-              <div className="flex items-center text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-all">
-                <span className="relative">
-                  게시판 입장하기
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
-                </span>
-                <svg className="w-5 h-5 ml-2 group-hover:translate-x-2 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </div>
             </div>
           </div>
         ))}
